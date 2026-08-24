@@ -21,6 +21,12 @@ fi
 #fix resolv.conf to point to connman's
 /etc/init.d/connman >/dev/null 2>&1 &
 
+#make sure the flathub remote is configured (best-effort at build time too,
+#this covers cases where that failed due to no network access during build)
+if hash flatpak >/dev/null 2>&1; then
+	flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo >/dev/null 2>&1 &
+fi
+
 #items to run on first boot
 (
 	if [ ! -e /firstboot ]; then
@@ -94,6 +100,9 @@ else
 	fi
 fi
 
-if hash X 2>/dev/null;then
+#lightdm (started via systemd graphical.target) now owns starting the graphical
+#session and lets the session (X11/xfce or Wayland/labwc) be picked at the
+#greeter, so we no longer call startx directly here.
+if ! hash lightdm >/dev/null 2>&1 && hash X 2>/dev/null;then
        su - quakeuser -l -c /usr/bin/startx >/tmp/startx.log 2>&1&
 fi

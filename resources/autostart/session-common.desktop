@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Quake-bootable session setup
+Comment=GPU tuning, tray icons and other per-session setup
+Exec=/home/quakeuser/bin/session-common.sh
+X-GNOME-Autostart-enabled=true
+NoDisplay=true

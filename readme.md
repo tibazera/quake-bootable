@@ -19,6 +19,7 @@ The main use case for quake-bootable is to save the image to a USB flash drive. 
   - discord
   - shutdown-system
   - razer commands (if a razer device exists)
+  - flatpak install/search apps from Flathub, or use the GNOME Software GUI (search "Software" in the app menu)
 - Quake related commands
   - quake - runs the game with the selected preset
   - quakepreset - changes the qw folder
@@ -50,16 +51,17 @@ You can change it with
 ### update packages
 `$ sudo apt update`
 
-## Step 4 - install a different window manager (optional)
-NOTE: switched to xfce by default - still relevant for switching to another wm though
-By default Quake-bootable includes a very basic window manager (Openbox). If you struggle with it, you can install a more familiar one, for example xfce. To install: `$ sudo apt install xfce4`
-And then, make it the default in the startup process. edit the file: `$ vim ~/.xinitrc`
-And change the very bottom where it says
-`exec openbox-session
-to
-exec xfce4-session`
+## Step 4 - choosing X11 or Wayland (optional)
+Quake-bootable boots into a LightDM login screen. quakeuser is preselected -
+just pick the session you want from the session menu before logging in:
+- **Quake-bootable (Xfce)** - the default X11/Xfce desktop, unchanged from before.
+- **Quake-bootable (Wayland)** - a Wayland session using labwc, a lightweight
+  Openbox-like compositor. ezQuake and other X11-only apps still work under
+  this session via XWayland.
 
-On the next boot, it will boot into xfce. Don't do it now! Continue to next step.
+If you'd rather install a different window manager for the X11 session instead,
+you still can: `$ sudo apt install xfce4` (or any other WM), then edit
+`~/.xinitrc.real` to `exec` it instead of `startxfce4`.
 
 ## Step 5 - fix boot options (optional)
 - If you want to keep Windows, you'll need to dual-boot. Let's ensure it will work.

@@ -63,6 +63,8 @@ background="$currentdir/resources/background.png"
 modprobe="$currentdir/resources/modprobe.d"
 issueappend="$currentdir/resources/issue.append"
 xfce="$currentdir/resources/xfce"
+autostart="$currentdir/resources/autostart"
+labwcdir="$currentdir/resources/labwc"
 
 #base packages
 packages="cpio grub-pc shim-signed grub-efi-amd64-signed linux-image-amd64 dosfstools init nano procps os-prober util-linux iputils-ping openssh-client file git sudo cmake ninja-build libgl1 libgl1-mesa-dri mesa-utils terminfo vim-tiny unzip zstd alsa-utils fbset systemd-timesyncd cloud-utils parted lvm2 gdisk initramfs-tools fdisk firmware-intel-misc firmware-nvidia-graphics firmware-nvidia-gsp firmware-intel-graphics firmware-linux firmware-linux-nonfree firmware-linux-free firmware-realtek firmware-iwlwifi firmware-intel-sound firmware-sof-signed libarchive-tools linux-image-generic ntfs-3g nfs-common exfat-fuse plymouth plymouth-label iw connman wpasupplicant zip libfuse2 rename libarchive-tools log2ram "
@@ -75,6 +77,15 @@ packages_x11+=" gnome-icon-theme xfce4-terminal xfce4 mousepad xkbset thunar-arc
 if [ "$release" != "stable" ];then
 	packages_x11+=" xfce-polkit "
 fi
+
+#visual theme packages
+packages_x11+=" arc-theme papirus-icon-theme "
+
+#flatpak support + gui
+packages_x11+=" flatpak gnome-software gnome-software-plugin-flatpak "
+
+#display manager (session picker) + wayland session
+packages_x11+=" lightdm lightdm-gtk-greeter labwc xwayland "
 
 if [ "$build_type" != "min" ];then
 	packages+=$packages_x11
@@ -479,6 +490,20 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 	#enable greetd
 	#(systemctl enable greetd || true)
 
+	#configure flathub remote for flatpak
+	flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
+
+	#lightdm session picker: X11 (xfce) is set up by the xfce package already,
+	#add a wayland (labwc) session entry
+	mkdir -p /usr/share/wayland-sessions
+	echo -e "[Desktop Entry]\nName=Quake-bootable (Wayland)\nComment=labwc wayland session\nExec=labwc\nType=Application\nDesktopNames=labwc" > /usr/share/wayland-sessions/labwc.desktop
+
+	#lightdm: show the greeter with quakeuser preselected so a session (X11/Wayland) can be picked
+	mkdir -p /etc/lightdm/lightdm.conf.d
+	echo -e "[Seat:*]\ngreeter-hide-users=false\nuser-session=xfce" > /etc/lightdm/lightdm.conf.d/50-quake-bootable.conf
+	systemctl set-default graphical.target || true
+	systemctl enable lightdm || true
+
 	#disable silken mouse
 	if [ -f /etc/X11/xinit/xserverrc ];then
 		sed -i "s|/usr/bin/X|/usr/bin/X -nosilk|g" /etc/X11/xinit/xserverrc
@@ -522,6 +547,15 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 	#$SUDO cp -af "$greetd/"* "$workdir/etc/greetd/."
 	$SUDO rm -rf "$workdir/etc/xdg/xfce4/xfconf/xfce-perchannel-xml"
 	$SUDO cp -af "$xfce/xfce-perchannel-xml" "$workdir/etc/xdg/xfce4/xfconf/"
+
+	#autostart entries (runs regardless of whether the session was started via startx or lightdm)
+	$SUDO mkdir -p "$workdir/home/quakeuser/.config/autostart"
+	$SUDO cp -f "$autostart/"* "$workdir/home/quakeuser/.config/autostart/"
+
+	#labwc (wayland session) config
+	$SUDO mkdir -p "$workdir/home/quakeuser/.config/labwc"
+	$SUDO cp -f "$labwcdir/autostart" "$workdir/home/quakeuser/.config/labwc/autostart"
+	$SUDO chmod -f +x "$workdir/home/quakeuser/.config/labwc/autostart"
 	#$SUDO ln -sf /background-default.png "$workdir/usr/share/backgrounds/xfce/xfce-x.svg"
 	#if [ -d "$workdir/usr/share/pipewire" ];then
 	#	$SUDO rm -rf "$workdir/home/quakeuser/.config/pipewire"
@@ -544,6 +578,7 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 	#home bin
 	$SUDO mkdir -p "$workdir/home/quakeuser/bin"
 	$SUDO cp -f "$currentdir/resources/bin/"* "$workdir/home/quakeuser/bin/."
+	$SUDO chmod -f +x "$workdir/home/quakeuser/bin/"*
 
 	$SUDO mkdir -p "$workdir/etc/X11/xorg.conf.d"
 	$SUDO cp -f "$xorgconf/"* "$workdir/etc/X11/xorg.conf.d/"
