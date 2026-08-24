@@ -1,7 +1,8 @@
 [Unit]
 Description=/etc/rc.local
 ConditionPathExists=/etc/rc.local
- 
+Before=lightdm.service display-manager.service
+
 [Service]
 Type=forking
 ExecStart=/etc/rc.local start

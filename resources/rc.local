@@ -102,7 +102,9 @@ fi
 
 #lightdm (started via systemd graphical.target) now owns starting the graphical
 #session and lets the session (X11/xfce or Wayland/labwc) be picked at the
-#greeter, so we no longer call startx directly here.
-if ! hash lightdm >/dev/null 2>&1 && hash X 2>/dev/null;then
+#greeter, so we no longer call startx directly here - unless lightdm isn't
+#actually enabled to start (build_type=min doesn't install it at all, and as
+#a safety net in case enabling it failed during the build).
+if ! systemctl is-enabled lightdm >/dev/null 2>&1 && hash X 2>/dev/null;then
        su - quakeuser -l -c /usr/bin/startx >/tmp/startx.log 2>&1&
 fi

@@ -451,7 +451,10 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 	#remove pasystray autostart, we do this ourselves so we do not end up with multiple instances
 	rm -f /etc/xdg/autostart/pasystray.desktop
 
-	#allow any user to start x
+	#allow any user to start x - needs_root_rights is only actually required
+	#for the startx fallback path (build_type=min, no lightdm); with lightdm,
+	#Xorg is started via logind/systemd instead, but leaving this set is
+	#harmless there and keeps the min build working
 	echo -e "allowed_users=anybody\nneeds_root_rights=yes" > /etc/X11/Xwrapper.config
 
 	#configure networking for minimal build
@@ -498,11 +501,16 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 	mkdir -p /usr/share/wayland-sessions
 	echo -e "[Desktop Entry]\nName=Quake-bootable (Wayland)\nComment=labwc wayland session\nExec=labwc\nType=Application\nDesktopNames=labwc" > /usr/share/wayland-sessions/labwc.desktop
 
-	#lightdm: show the greeter with quakeuser preselected so a session (X11/Wayland) can be picked
+	#lightdm: autologin straight into the X11/xfce session, same as before
+	#(startx used to do this unconditionally). The Wayland session is still
+	#listed in the greeter, reachable by logging in manually before the
+	#autologin timeout, or by choosing it and logging in with the quakeuser
+	#password (default: quakeuser) on a later boot.
 	mkdir -p /etc/lightdm/lightdm.conf.d
-	echo -e "[Seat:*]\ngreeter-hide-users=false\nuser-session=xfce" > /etc/lightdm/lightdm.conf.d/50-quake-bootable.conf
-	systemctl set-default graphical.target || true
-	systemctl enable lightdm || true
+	echo -e "[Seat:*]\nautologin-user=quakeuser\nautologin-session=xfce\nautologin-user-timeout=0\ngreeter-hide-users=false\nuser-session=xfce" > /etc/lightdm/lightdm.conf.d/50-quake-bootable.conf
+	usermod -a -G autologin quakeuser 2>/dev/null || true
+	systemctl set-default graphical.target
+	systemctl enable lightdm
 
 	#disable silken mouse
 	if [ -f /etc/X11/xinit/xserverrc ];then

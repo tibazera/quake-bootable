@@ -52,8 +52,10 @@ You can change it with
 `$ sudo apt update`
 
 ## Step 4 - choosing X11 or Wayland (optional)
-Quake-bootable boots into a LightDM login screen. quakeuser is preselected -
-just pick the session you want from the session menu before logging in:
+Quake-bootable auto-logs into the X11/Xfce desktop by default, same as
+before. If you want the Wayland session instead, log in manually (or reboot
+and pick a session at the LightDM greeter before the autologin kicks in) and
+choose:
 - **Quake-bootable (Xfce)** - the default X11/Xfce desktop, unchanged from before.
 - **Quake-bootable (Wayland)** - a Wayland session using labwc, a lightweight
   Openbox-like compositor. ezQuake and other X11-only apps still work under
