@@ -7,11 +7,16 @@ TRIPLEBUFFER=0
 
 prepend=
 
+#run under gamemode if available (I/O priority, GPU performance mode, etc)
+if hash gamemoderun >/dev/null 2>&1;then
+	prepend="gamemoderun "
+fi
+
 if lsmod|grep nvidia >/dev/null 2>&1;then
 	echo "loading nvidia preferences"
 
 	#check for primus
-	primusrun glxinfo >/dev/null 2>&1 && prepend="primusrun "
+	primusrun glxinfo >/dev/null 2>&1 && prepend+="primusrun "
 
 	export __GL_YIELD="NOTHING"
 	export __GL_MaxFramesAllowed=2

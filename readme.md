@@ -97,6 +97,9 @@ And that's it. You can run the game and have it exactly your way:
 `$ quake`
 
 # Other info:
+- the `quake` command automatically runs the game under GameMode (via
+  `gamemoderun`) when available, on top of the always-on performance CPU
+  governor set at boot
 - configuration of your gpu can be found in `/etc/rc.local`
 - see what runs in the startup `$ vim ~/.xinitrc` 
 - if your Quake isn't as smooth as it should, go to the ezQuake menu, and change the resolution there. Play around with settings, and apply them. Once its ok, cfg_save

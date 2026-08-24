@@ -67,7 +67,7 @@ autostart="$currentdir/resources/autostart"
 labwcdir="$currentdir/resources/labwc"
 
 #base packages
-packages="cpio grub-pc shim-signed grub-efi-amd64-signed linux-image-amd64 dosfstools init nano procps os-prober util-linux iputils-ping openssh-client file git sudo cmake ninja-build libgl1 libgl1-mesa-dri mesa-utils terminfo vim-tiny unzip zstd alsa-utils fbset systemd-timesyncd cloud-utils parted lvm2 gdisk initramfs-tools fdisk firmware-intel-misc firmware-nvidia-graphics firmware-nvidia-gsp firmware-intel-graphics firmware-linux firmware-linux-nonfree firmware-linux-free firmware-realtek firmware-iwlwifi firmware-intel-sound firmware-sof-signed libarchive-tools linux-image-generic ntfs-3g nfs-common exfat-fuse plymouth plymouth-label iw connman wpasupplicant zip libfuse2 rename libarchive-tools log2ram "
+packages="cpio grub-pc shim-signed grub-efi-amd64-signed linux-image-amd64 dosfstools init nano procps os-prober util-linux iputils-ping openssh-client file git sudo cmake ninja-build libgl1 libgl1-mesa-dri mesa-utils terminfo vim-tiny unzip zstd alsa-utils fbset systemd-timesyncd cloud-utils parted lvm2 gdisk initramfs-tools fdisk firmware-intel-misc firmware-nvidia-graphics firmware-nvidia-gsp firmware-intel-graphics firmware-linux firmware-linux-nonfree firmware-linux-free firmware-realtek firmware-iwlwifi firmware-intel-sound firmware-sof-signed libarchive-tools linux-image-generic ntfs-3g nfs-common exfat-fuse plymouth plymouth-label iw connman wpasupplicant zip libfuse2 rename libarchive-tools log2ram gamemode "
 #minimal build packages
 packages_nox11="libegl1 ifupdown dhcpcd-base"
 #full build packages
