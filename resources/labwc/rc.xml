@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<labwc_config>
+  <!-- raw mouse input: no acceleration -->
+  <libinput>
+    <device category="default">
+      <accelProfile>flat</accelProfile>
+      <accelSpeed>0</accelSpeed>
+    </device>
+  </libinput>
+</labwc_config>

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Discord
+GenericName=discord
+Comment=Discord Chat
+Keywords=discord,chat
+Icon=discord
+Categories=Network;InstantMessaging;
+Exec=nice -n 10 discord

@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+xanmod=${XANMOD:-0} #1 = install xanmod kernel instead of debian's
 build_type=${BUILDTYPE:-full} #do not install x11 or nvidia driver
 arch=${BUILDARCH:-amd64}
 onlybuild=0 #use existing workdir and only build image
@@ -68,7 +69,7 @@ autostart="$currentdir/resources/autostart"
 labwcdir="$currentdir/resources/labwc"
 
 #base packages
-packages="cpio grub-pc shim-signed grub-efi-amd64-signed linux-image-amd64 dosfstools init nano procps os-prober util-linux iputils-ping openssh-client file sudo `#git cmake ninja-build` libgl1 libgl1-mesa-dri mesa-utils terminfo vim-tiny unzip zstd alsa-utils fbset systemd-timesyncd cloud-utils parted lvm2 gdisk initramfs-tools fdisk firmware-intel-misc firmware-nvidia-graphics firmware-nvidia-gsp firmware-intel-graphics firmware-linux firmware-linux-nonfree firmware-linux-free firmware-realtek firmware-iwlwifi firmware-intel-sound firmware-sof-signed libarchive-tools linux-image-generic ntfs-3g nfs-common exfat-fuse plymouth plymouth-label iw connman wpasupplicant zip libfuse2 rename libarchive-tools log2ram gamemode "
+packages="locales cpio grub-pc shim-signed grub-efi-amd64-signed linux-image-amd64 dosfstools init nano procps os-prober util-linux iputils-ping openssh-client file sudo `#git cmake ninja-build` libgl1 libgl1-mesa-dri mesa-utils terminfo vim-tiny unzip zstd alsa-utils fbset systemd-timesyncd cloud-utils parted lvm2 gdisk initramfs-tools fdisk firmware-intel-misc firmware-nvidia-graphics firmware-nvidia-gsp firmware-intel-graphics firmware-linux firmware-linux-nonfree firmware-linux-free firmware-realtek firmware-iwlwifi firmware-intel-sound firmware-sof-signed libarchive-tools linux-image-generic ntfs-3g nfs-common exfat-fuse plymouth plymouth-label iw connman wpasupplicant zip libfuse2 rename libarchive-tools log2ram gamemode "
 #minimal build packages
 packages_nox11="libegl1 ifupdown dhcpcd-base"
 #full build packages
@@ -82,8 +83,8 @@ fi
 #visual theme packages
 packages_x11+=" arc-theme papirus-icon-theme "
 
-#flatpak support + gui
-packages_x11+=" flatpak gnome-software gnome-software-plugin-flatpak "
+#flatpak support (cli only, gnome-software adds ~150MB)
+packages_x11+=" flatpak "
 
 #display manager (session picker) + wayland session
 packages_x11+=" lightdm lightdm-gtk-greeter labwc xwayland "
@@ -96,6 +97,7 @@ fi
 
 #vars to be used in chroot
 export build_type
+export xanmod
 export packages
 export ezquakegitrepo
 export nquakeresourcesurl
@@ -217,7 +219,7 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 
 	SCRIPTCMD=""
 	if [ ! -z "$SUDO" ];then
-		SCRIPTCMD="$SUDO --preserve-env=release,nquakeresourcesurl,nquakeresourcesurl_backup,nquakezips,ezquakegitrepo,packages,distro,build_type,arch"
+		SCRIPTCMD="$SUDO --preserve-env=xanmod,release,nquakeresourcesurl,nquakeresourcesurl_backup,nquakezips,ezquakegitrepo,packages,distro,build_type,arch"
 	fi
 
 	$SCRIPTCMD chroot "$workdir" /bin/bash -e -c '
@@ -244,7 +246,10 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 	rm -rf /usr/share/doc
 	echo "path-exclude=/usr/share/man/*" > /etc/dpkg/dpkg.cfg.d/01_noman
 	rm -rf /usr/share/man
-	echo "path-exclude=/usr/share/locale/*" > /etc/dpkg/dpkg.cfg.d/01_nolocale
+	#keep only the pt_BR translations
+	echo -e "path-exclude=/usr/share/locale/*
+path-include=/usr/share/locale/pt_BR/*
+path-include=/usr/share/locale/locale.alias" > /etc/dpkg/dpkg.cfg.d/01_nolocale
 	rm -rf /usr/share/locale
 
 	if [ "$release" != "unstable" ];then
@@ -405,9 +410,19 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 	#  apt-get -qy install $ezquakedeps
 	#fi
 
-	#openrazer and kernel headers	
+	#optional xanmod kernel (XANMOD=1), x64v3 needs a cpu with avx2 (haswell / zen1 or newer)
+	if [ "$xanmod" == "1" ] && [ "$arch" == "amd64" ];then
+		wget -qO - https://dl.xanmod.org/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg
+		echo "deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main" > /etc/apt/sources.list.d/xanmod.list
+		apt-get -qy update
+		apt-get -qy install linux-xanmod-x64v3
+		#only one kernel on the stick, saves ~400MB
+		apt-get -qy purge linux-image-amd64 linux-image-generic "linux-image-[0-9]*" || true
+	fi
+
+	#kernel headers (nvidia dkms)
 	if [ "$arch" == "amd64" ] || [ "$arch" == "686" ];then
-	  apt-get -qy install openrazer-driver-dkms linux-headers-generic pahole
+	  [ "$xanmod" == "1" ] || apt-get -qy install linux-headers-generic pahole
   fi
 
 	if [ "$arch" == "amd64" ];then
@@ -502,6 +517,12 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 	#brazilian defaults: timezone and abnt2 keyboard (x11 picks it up from xorg.conf.d, labwc from XKB_DEFAULT_*)
 	ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
 	echo "America/Sao_Paulo" > /etc/timezone
+	sed -i "s/^# *pt_BR.UTF-8/pt_BR.UTF-8/" /etc/locale.gen
+	locale-gen
+	echo "LANG=pt_BR.UTF-8" > /etc/default/locale
+
+	#wifi power saving adds latency spikes, turn it off on every wireless interface
+	echo "ACTION==\"add\", SUBSYSTEM==\"net\", KERNEL==\"wl*\", RUN+=\"/usr/sbin/iw dev \$name set power_save off\"" > /etc/udev/rules.d/81-wifi-powersave.rules
 	echo -e "XKBMODEL=\"abnt2\"
 XKBLAYOUT=\"br\"" > /etc/default/keyboard
 	echo -e "XKB_DEFAULT_LAYOUT=br
@@ -609,7 +630,11 @@ XKB_DEFAULT_MODEL=abnt2" >> /etc/environment
 
 	#labwc (wayland session) config
 	$SUDO mkdir -p "$workdir/home/quakeuser/.config/labwc"
-	$SUDO cp -f "$labwcdir/autostart" "$workdir/home/quakeuser/.config/labwc/autostart"
+	$SUDO cp -f "$labwcdir/autostart" "$labwcdir/rc.xml" "$workdir/home/quakeuser/.config/labwc/"
+
+	#network/latency sysctl tuning
+	$SUDO mkdir -p "$workdir/etc/sysctl.d"
+	$SUDO cp -f "$currentdir/resources/sysctl.d/"* "$workdir/etc/sysctl.d/"
 	$SUDO chmod -f +x "$workdir/home/quakeuser/.config/labwc/autostart"
 	#$SUDO ln -sf /background-default.png "$workdir/usr/share/backgrounds/xfce/xfce-x.svg"
 	#if [ -d "$workdir/usr/share/pipewire" ];then
@@ -703,7 +728,9 @@ fi
 
 ls -altr "$workdir/etc/ld.so.conf.d"
 
-$SUDO ./debootstick/debootstick --kernel-package linux-image-generic --config-kernel-bootargs "+selinux=0 +amdgpu.ppfeaturemask=0xffffffff +pcie_aspm=off +usbcore.autosuspend=-1 +cpufreq.default_governor=performance +ipv6.disable=1 +audit=0 +apparmor=0 +preempt=full +mitigations=off +ibt=off +rootwait +tsc=reliable +quiet +splash +loglevel=1 +i915.enable_guc=3 -rootdelay" --config-root-password-none --config-hostname $mediahostname "$workdir" "$imagename"
+kernelpackage=linux-image-generic
+[ "$xanmod" == "1" ] && kernelpackage=linux-xanmod-x64v3
+$SUDO ./debootstick/debootstick --kernel-package $kernelpackage --config-kernel-bootargs "+selinux=0 +amdgpu.ppfeaturemask=0xffffffff +pcie_aspm=off +usbcore.autosuspend=-1 +cpufreq.default_governor=performance +ipv6.disable=1 +audit=0 +apparmor=0 +preempt=full +mitigations=off +ibt=off +rootwait +tsc=reliable +quiet +splash +loglevel=1 +i915.enable_guc=3 -rootdelay" --config-root-password-none --config-hostname $mediahostname "$workdir" "$imagename"
 
 if [ $? -eq 0 ];then
 
