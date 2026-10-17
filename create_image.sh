@@ -461,6 +461,8 @@ Pin-Priority: 100" > /etc/apt/preferences.d/unstable
 				exit 15
 			fi
 			apt-get -qy install /tmp/chrome.deb
+			#skip chrome first-run screens (discord opens the browser once on first login)
+			echo "{\"distribution\":{\"skip_first_run_ui\":true,\"suppress_first_run_default_browser_prompt\":true,\"suppress_first_run_bubble\":true}}" > /opt/google/chrome/initial_preferences
 			rm -f /tmp/chrome.deb
 
 			#discord (official .deb)
@@ -601,6 +603,10 @@ XKB_DEFAULT_MODEL=abnt2" >> /etc/environment
 	apt-get -qy purge sassc
 	apt-get -qy clean
 	rm -rf /var/lib/apt/lists/*
+
+	#our wallpaper is the system default (xfdesktop falls back to desktop-base)
+	update-alternatives --install /usr/share/images/desktop-base/desktop-background desktop-background /usr/share/backgrounds/quake-bootable.jpg 100
+	update-alternatives --set desktop-background /usr/share/backgrounds/quake-bootable.jpg
 
 	#greeter matches the desktop theme
 	echo -e "[greeter]
