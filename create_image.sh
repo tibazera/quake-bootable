@@ -673,6 +673,15 @@ XKB_DEFAULT_MODEL=abnt2" >> /etc/environment
 		$SUDO cp -f "$dfile" "$workdir/home/quakeuser/.local/share/applications"
 	done
 
+	#unezquake icon + desktop shortcuts (trusted on first login by session-common.sh)
+	$SUDO mkdir -p "$workdir/usr/share/pixmaps" "$workdir/home/quakeuser/Desktop"
+	$SUDO cp -f "$currentdir/resources/icons/unezquake.png" "$workdir/usr/share/pixmaps/unezquake.png"
+	for dfile in unezquake.desktop discord.desktop;do
+		$SUDO cp -f "$currentdir/resources/applications/$dfile" "$workdir/home/quakeuser/Desktop/"
+	done
+	$SUDO cp -f "$workdir/usr/share/applications/google-chrome.desktop" "$workdir/home/quakeuser/Desktop/" || true
+	$SUDO chmod -f +x "$workdir/home/quakeuser/Desktop/"*.desktop
+
 	#home bin
 	$SUDO mkdir -p "$workdir/home/quakeuser/bin"
 	$SUDO cp -f "$currentdir/resources/bin/"* "$workdir/home/quakeuser/bin/."

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=unezQuake
+GenericName=QuakeWorld
+Comment=Play QuakeWorld
+Keywords=quake,qw,unezquake
+Icon=/usr/share/pixmaps/unezquake.png
+Categories=Game;ActionGame;
+Exec=/home/quakeuser/bin/quake
+Terminal=false

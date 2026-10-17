@@ -81,6 +81,11 @@ if ! grep 'qw=' "$HOME/.config/mimeapps.list" >/dev/null 2>&1; then
 	fi
 fi
 
+#xfce only runs desktop launchers it trusts, mark ours (checksum must match the file)
+for f in "$HOME/Desktop/"*.desktop;do
+	[ -e "$f" ] && gio set -t string "$f" metadata::xfce-exe-checksum "$(sha256sum "$f" | cut -d" " -f1)" >/dev/null 2>&1
+done
+
 if [ ! -e "$HOME/.firstboot" ];then
 	if [ $is_x11 -eq 1 ];then
 		xfce4-terminal --geometry=0x0+100+100 &
