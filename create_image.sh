@@ -679,6 +679,8 @@ background=/usr/share/backgrounds/quake-bootable.jpg" > /etc/lightdm/lightdm-gtk
 	#network/latency sysctl tuning
 	$SUDO mkdir -p "$workdir/etc/sysctl.d"
 	$SUDO cp -f "$currentdir/resources/sysctl.d/"* "$workdir/etc/sysctl.d/"
+	$SUDO mkdir -p "$workdir/etc/wireplumber/wireplumber.conf.d"
+	$SUDO cp -f "$currentdir/resources/wireplumber.conf.d/"* "$workdir/etc/wireplumber/wireplumber.conf.d/"
 	$SUDO chmod -f +x "$workdir/home/quakeuser/.config/labwc/autostart"
 	#$SUDO ln -sf /background-default.png "$workdir/usr/share/backgrounds/xfce/xfce-x.svg"
 	#if [ -d "$workdir/usr/share/pipewire" ];then
