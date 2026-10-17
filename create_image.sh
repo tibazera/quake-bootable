@@ -312,6 +312,17 @@ path-include=/usr/share/locale/locale.alias" > /etc/dpkg/dpkg.cfg.d/01_nolocale
 
 	#install packages
 	apt -qy install $packages
+
+	#newest mesa: debian unstable gets mesa releases weeks before testing.
+	#pinned low so nothing else is pulled from unstable unless asked for
+	if [ "$release" != "unstable" ] && [ "$build_type" != "min" ];then
+		echo "deb http://deb.debian.org/debian unstable main contrib non-free non-free-firmware" > /etc/apt/sources.list.d/unstable.list
+		echo -e "Package: *
+Pin: release a=unstable
+Pin-Priority: 100" > /etc/apt/preferences.d/unstable
+		apt-get -qy update
+		apt-get -qy -t unstable install libgl1-mesa-dri libglx-mesa0 libegl-mesa0 libgbm1 mesa-libgallium
+	fi
 	#for package in $packages;do
 	#	apt -qy install $package
 	#	echo "completed $package"

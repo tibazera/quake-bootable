@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 <labwc_config>
+  <!-- let fullscreen games tear (no vsync wait), lowest input lag on 240/360hz -->
+  <core>
+    <allowTearing>fullscreenForced</allowTearing>
+  </core>
   <!-- raw mouse input: no acceleration -->
   <libinput>
     <device category="default">
