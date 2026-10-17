@@ -86,6 +86,20 @@ for f in "$HOME/Desktop/"*.desktop;do
 	[ -e "$f" ] && gio set -t string "$f" metadata::xfce-exe-checksum "$(sha256sum "$f" | cut -d" " -f1)" >/dev/null 2>&1
 done
 
+#wallpaper on every monitor, once (xfdesktop keys it per monitor name, unknown until runtime)
+if [ $is_x11 -eq 1 ] && [ ! -e "$HOME/.wallpaper-set" ];then
+	(
+		sleep 3
+		for mon in $(xrandr --listactivemonitors | awk 'NR>1{print $4}');do
+			for ws in 0 1 2 3;do
+				xfconf-query -c xfce4-desktop -p "/backdrop/screen0/monitor$mon/workspace$ws/last-image" -t string -s /usr/share/backgrounds/quake-bootable.jpg --create
+				xfconf-query -c xfce4-desktop -p "/backdrop/screen0/monitor$mon/workspace$ws/image-style" -t int -s 5 --create
+			done
+		done
+		touch "$HOME/.wallpaper-set"
+	)&
+fi
+
 if [ ! -e "$HOME/.firstboot" ];then
 	if [ $is_x11 -eq 1 ];then
 		xfce4-terminal --geometry=0x0+100+100 &

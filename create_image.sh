@@ -81,13 +81,13 @@ if [ "$release" != "stable" ];then
 fi
 
 #visual theme packages
-packages_x11+=" orchis-gtk-theme papirus-icon-theme xfce4-whiskermenu-plugin fonts-inter fonts-jetbrains-mono breeze-cursor-theme "
+packages_x11+=" papirus-icon-theme xfce4-whiskermenu-plugin fonts-inter fonts-jetbrains-mono breeze-cursor-theme "
 
 #flatpak support (cli only, gnome-software adds ~150MB)
 packages_x11+=" flatpak "
 
 #display manager (session picker) + wayland session
-packages_x11+=" lightdm lightdm-gtk-greeter labwc xwayland "
+packages_x11+=" lightdm lightdm-gtk-greeter labwc xwayland swaybg "
 
 #screen sharing under wayland (discord/chrome via pipewire), x11 needs nothing extra
 packages_x11+=" xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk "
@@ -215,6 +215,8 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 				$SUDO cp -fR "$userquakedir/$d/." "$workdir/quake/$d/"
 			fi
 		done
+		#personal api keys are left out unless KEEPAPIKEY=1 (never publish them)
+		[ "${KEEPAPIKEY:-0}" == "1" ] || $SUDO find "$workdir/quake" -name "*.apikey" -delete
 	fi
 	$SUDO cp -f "$background" "$workdir/background.png"
 	$SUDO mkdir -p "$workdir/usr/share/plymouth/themes"
@@ -589,13 +591,21 @@ XKB_DEFAULT_MODEL=abnt2" >> /etc/environment
 	mkdir -p /etc/lightdm/lightdm.conf.d
 	echo -e "[Seat:*]\nautologin-user=quakeuser\nautologin-session=xfce\nautologin-user-timeout=0\ngreeter-hide-users=false\nuser-session=xfce" > /etc/lightdm/lightdm.conf.d/50-quake-bootable.conf
 	usermod -a -G autologin quakeuser 2>/dev/null || true
+	#purple orchis theme, built from a pinned release (debian only ships the blue one)
+	apt-get -qy install sassc
+	wget -qO /tmp/orchis.tar.gz https://github.com/vinceliuice/Orchis-theme/archive/refs/tags/2026-07-07.tar.gz
+	mkdir -p /tmp/orchis && tar xzf /tmp/orchis.tar.gz -C /tmp/orchis --strip-components=1
+	(cd /tmp/orchis && ./install.sh -d /usr/share/themes -t purple -c dark -s standard)
+	rm -rf /tmp/orchis /tmp/orchis.tar.gz
+	apt-get -qy purge sassc
+
 	#greeter matches the desktop theme
 	echo -e "[greeter]
-theme-name=Orchis-Dark
+theme-name=Orchis-Purple-Dark
 icon-theme-name=Papirus-Dark
 cursor-theme-name=breeze_cursors
 font-name=Inter 11
-background=/background.png" > /etc/lightdm/lightdm-gtk-greeter.conf
+background=/usr/share/backgrounds/quake-bootable.jpg" > /etc/lightdm/lightdm-gtk-greeter.conf
 	systemctl set-default graphical.target
 	systemctl enable lightdm
 
@@ -683,6 +693,8 @@ background=/background.png" > /etc/lightdm/lightdm-gtk-greeter.conf
 	#unezquake icon + desktop shortcuts (trusted on first login by session-common.sh)
 	$SUDO mkdir -p "$workdir/usr/share/pixmaps" "$workdir/home/quakeuser/Desktop"
 	$SUDO cp -f "$currentdir/resources/icons/unezquake.png" "$workdir/usr/share/pixmaps/unezquake.png"
+	$SUDO mkdir -p "$workdir/usr/share/backgrounds"
+	$SUDO cp -f "$currentdir/resources/wallpaper.jpg" "$workdir/usr/share/backgrounds/quake-bootable.jpg"
 	for dfile in unezquake.desktop discord.desktop;do
 		$SUDO cp -f "$currentdir/resources/applications/$dfile" "$workdir/home/quakeuser/Desktop/"
 	done

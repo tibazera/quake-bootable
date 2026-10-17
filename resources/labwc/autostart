@@ -7,3 +7,6 @@ dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
 
 #labwc does not read ~/.config/autostart, start discord here
 "$HOME/bin/discord" --start-minimized >/dev/null 2>&1 &
+
+#wallpaper
+swaybg -i /usr/share/backgrounds/quake-bootable.jpg -m fill >/dev/null 2>&1 &
