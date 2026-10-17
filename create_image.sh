@@ -592,12 +592,15 @@ XKB_DEFAULT_MODEL=abnt2" >> /etc/environment
 	echo -e "[Seat:*]\nautologin-user=quakeuser\nautologin-session=xfce\nautologin-user-timeout=0\ngreeter-hide-users=false\nuser-session=xfce" > /etc/lightdm/lightdm.conf.d/50-quake-bootable.conf
 	usermod -a -G autologin quakeuser 2>/dev/null || true
 	#purple orchis theme, built from a pinned release (debian only ships the blue one)
+	apt-get -qy update
 	apt-get -qy install sassc
 	wget -qO /tmp/orchis.tar.gz https://github.com/vinceliuice/Orchis-theme/archive/refs/tags/2026-07-07.tar.gz
 	mkdir -p /tmp/orchis && tar xzf /tmp/orchis.tar.gz -C /tmp/orchis --strip-components=1
 	(cd /tmp/orchis && ./install.sh -d /usr/share/themes -t purple -c dark -s standard)
 	rm -rf /tmp/orchis /tmp/orchis.tar.gz
 	apt-get -qy purge sassc
+	apt-get -qy clean
+	rm -rf /var/lib/apt/lists/*
 
 	#greeter matches the desktop theme
 	echo -e "[greeter]
