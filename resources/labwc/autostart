@@ -4,3 +4,6 @@
 
 #portals find the wayland session through the dbus/systemd activation environment
 dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE >/dev/null 2>&1
+
+#labwc does not read ~/.config/autostart, start discord here
+"$HOME/bin/discord" --start-minimized >/dev/null 2>&1 &
