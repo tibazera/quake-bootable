@@ -6,6 +6,7 @@ Versões: correção de bug sobe o último número (1.0.1, 1.0.2...), novidade s
 
 ### Correções
 - Pendrive não aparecia no menu de boot e a BIOS acusava "GPT header corruption has been detected" (visto em placa ASUS). A imagem usava tabela GPT, cuja cópia de segurança do cabeçalho ficava no fim da imagem e não no fim do pendrive. A imagem agora usa tabela MBR, que funciona em pendrive de qualquer tamanho. Boot UEFI com Secure Boot e boot legado continuam iguais.
+- README e release: removida a instrução de "modo DD" no Rufus, opção que não existe para arquivo `.img`.
 
 ## 1.0.0-br (2026-10-17)
 

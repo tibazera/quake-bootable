@@ -60,7 +60,7 @@ Instale o [7-Zip](https://www.7-zip.org/) (gratuito), clique com o botão direit
 3. No Rufus:
    - **Dispositivo**: escolha o seu pendrive (confira o tamanho para não apagar o disco errado!)
    - **Seleção de boot**: clique em **SELECIONAR** e escolha o arquivo `.img`
-4. Clique em **INICIAR**. Se perguntar o modo de gravação, escolha **Gravar em modo Imagem DD**.
+4. Clique em **INICIAR**. Com arquivo `.img` o Rufus já grava bit a bit, não existe opção de modo para escolher.
 5. Confirme que os dados do pendrive serão apagados e espere terminar.
 
 Alternativa: o [balenaEtcher](https://etcher.balena.io/) também funciona (Flash from file → escolher o pendrive → Flash).
@@ -173,7 +173,7 @@ Dentro do jogo, `cfg_save` salva suas alterações.
 ## Problemas comuns
 
 - **Tela vermelha falando de Secure Boot**: desligue o Secure Boot (passo 4).
-- **O pendrive não aparece no menu de boot**: tente outra porta USB (de preferência na traseira do PC) e confira se gravou em modo DD.
+- **O pendrive não aparece no menu de boot**: tente outra porta USB (de preferência na traseira do PC). Se a BIOS mostrar "GPT header corruption", você está usando uma imagem antiga (1.0.0): baixe a 1.0.1 ou mais nova.
 - **NVIDIA antiga (série 10xx ou anterior)**: esta imagem usa o driver novo; use a imagem `full-old_nvidia` do projeto original do ciscon.
 - **Sem internet no Wi-Fi**: clique no ícone de rede na barra e escolha a sua rede.
 
