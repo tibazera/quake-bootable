@@ -1,0 +1,6 @@
+#!/bin/bash
+#native wayland + pipewire capture under wayland so screen sharing goes through the portal
+if [ "$XDG_SESSION_TYPE" = "wayland" ];then
+	exec nice -n 10 /usr/bin/discord --enable-features=UseOzonePlatform,WebRTCPipeWireCapturer --ozone-platform=wayland "$@"
+fi
+exec nice -n 10 /usr/bin/discord "$@"

@@ -89,6 +89,9 @@ packages_x11+=" flatpak "
 #display manager (session picker) + wayland session
 packages_x11+=" lightdm lightdm-gtk-greeter labwc xwayland "
 
+#screen sharing under wayland (discord/chrome via pipewire), x11 needs nothing extra
+packages_x11+=" xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk "
+
 if [ "$build_type" != "min" ];then
 	packages+=$packages_x11
 else
@@ -642,6 +645,10 @@ XKB_DEFAULT_MODEL=abnt2" >> /etc/environment
 	#labwc (wayland session) config
 	$SUDO mkdir -p "$workdir/home/quakeuser/.config/labwc"
 	$SUDO cp -f "$labwcdir/autostart" "$labwcdir/rc.xml" "$workdir/home/quakeuser/.config/labwc/"
+
+	#portal backends: wlr for screencast/screenshot on labwc, gtk for the rest
+	$SUDO mkdir -p "$workdir/home/quakeuser/.config/xdg-desktop-portal"
+	$SUDO cp -f "$currentdir/resources/xdg-desktop-portal/"* "$workdir/home/quakeuser/.config/xdg-desktop-portal/"
 
 	#network/latency sysctl tuning
 	$SUDO mkdir -p "$workdir/etc/sysctl.d"

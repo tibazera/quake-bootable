@@ -1,3 +1,6 @@
 #!/bin/bash
 
 . "$HOME/bin/session-common.sh"
+
+#portals find the wayland session through the dbus/systemd activation environment
+dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE >/dev/null 2>&1

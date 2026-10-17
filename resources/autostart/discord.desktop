@@ -2,6 +2,6 @@
 Type=Application
 Name=Discord
 Comment=Start Discord minimized to the tray, below the game in cpu priority
-Exec=nice -n 10 discord --start-minimized
+Exec=/home/quakeuser/bin/discord --start-minimized
 X-GNOME-Autostart-enabled=true
 NoDisplay=true
