@@ -1,127 +1,193 @@
-﻿# Introduction
-(TLDR: Go to the releases page and follow the simplified instructions there.)
+# Quake Bootable BR
 
-Want to try running Quake in Linux? Curious?
-It's easy! Ciscon prepared this Linux Quake bootable image, which includes Google Chrome, Discord and mostly everything you need to use when playing Quake, without missing anything. Everything works immediately.
-Readme credited to mushi.
+Um Linux pronto para jogar **QuakeWorld** que roda direto do pendrive, sem instalar nada no seu Windows.
+Você liga o PC pelo pendrive e já cai num desktop com tudo funcionando, focado em **desempenho**.
 
-# Instructions on how to "burn" this img file to a disk
-The main use case for quake-bootable is to save the image to a USB flash drive. But you can also "burn" it to an empty disk on your system, and have dual boot (with Windows too). In this chapter, we will describe how to do it.
+Baseado no [quake-bootable do ciscon](https://github.com/ciscon/quake-bootable), adaptado para jogadores brasileiros.
 
-## Prerequisites
-- Know how to use a linux terminal (console)
-- Know how to use the nano text editor (follow instructions within the text editor for saving etc), or better yet, the most important shortcuts of vim (quit, save and quit, insert...).  Replace all vim references with nano if you choose this more user friendly text editor.
+## O que vem nele
 
-## Available commands in Quake-bootable (printed in terminal on boot)
-- General
-  - browser - starts google chrome
-  - filebrowser
-  - discord
-  - shutdown-system
-  - razer commands (if a razer device exists)
-  - flatpak install/search apps from Flathub, or use the GNOME Software GUI (search "Software" in the app menu)
-- Quake related commands
-  - quake - runs the game with the selected preset
-  - quakepreset - changes the qw folder
-  - update-quake
-  - quake-afterquake
+- **unezQuake** (última versão do [dusty-qw/unezquake](https://github.com/dusty-qw/unezquake)) com config, texturas, mapas e HUD já configurados
+- **Google Chrome** e **Discord** (app oficial, com compartilhamento de tela)
+- **Mesa** (driver de vídeo AMD/Intel) mais recente, direto do Debian unstable
+- Driver **NVIDIA** incluso
+- Tudo em **português**, teclado **ABNT2** e horário de **Brasília**
+- Visual moderno: tema escuro roxo (Orchis), ícones Papirus, fonte Inter
 
+### Ajustes de desempenho
 
-## Step 1 - Burn the image
-In Windows, to write image to a USB drive use win32 disk imager.  To write to an HDD (or USB) you may also use balenaEtcher to write the .img file to the target drive.
+- CPU sempre no modo `performance`, mitigações de segurança da CPU desligadas (mais FPS)
+- Jogo roda com prioridade alta e GameMode
+- Mouse sem aceleração (raw input)
+- Rede ajustada para menos jitter (fq + bbr), Wi-Fi sem economia de energia
+- Compositor desligado no X11 (menos input lag)
+- Discord roda com prioridade menor que o jogo
 
-In Linux just use dd to write the image file:
+## O que você precisa
 
-`dd if=quake_bootable.img of=/dev/sdX bs=8M`
+- Um **pendrive de 8 GB ou mais** (USB 3.0 recomendado; tudo nele será apagado)
+- PC 64 bits (qualquer processador Intel/AMD dos últimos ~12 anos)
+- Placa de vídeo AMD, Intel ou NVIDIA (série 16xx/20xx ou mais nova)
 
-Replace sdX with your usb or harddrive.  For a usb drive this can be obtained by plugging in the drive and look at the tail end of the output from running dmesg.
+---
 
-## Step 2 - Boot into Quake-bootable
-When booting, press the key to open boot options (usually F8), and choose the disk to boot from.
-Alternatively, go to BIOS and do it from there.
-Note: If a red warning is displayed when you select the Quake-bootable disk, about secure boot, you have to disable "Secure Boot" on the BIOS. It is required to boot from non-Windows OSes.
+## Passo a passo: rodar pelo pendrive (recomendado)
 
-## Step 3 - Recommended optional steps
-### change password from user (quakeuser)
-The Quake-bootable user is quakeuser. The default password is quakeuser (you will need it)
-You can change it with
+### 1. Baixe a imagem
 
-`$ passwd`
+Vá na página de [**Releases**](../../releases/latest) e baixe **todas as partes** do arquivo:
 
-### update packages
-`$ sudo apt update`
-
-## Step 4 - choosing X11 or Wayland (optional)
-Quake-bootable auto-logs into the X11/Xfce desktop by default, same as
-before. If you want the Wayland session instead, log in manually (or reboot
-and pick a session at the LightDM greeter before the autologin kicks in) and
-choose:
-- **Quake-bootable (Xfce)** - the default X11/Xfce desktop, unchanged from before.
-- **Quake-bootable (Wayland)** - a Wayland session using labwc, a lightweight
-  Openbox-like compositor. ezQuake and other X11-only apps still work under
-  this session via XWayland.
-
-If you'd rather install a different window manager for the X11 session instead,
-you still can: `$ sudo apt install xfce4` (or any other WM), then edit
-`~/.xinitrc.real` to `exec` it instead of `startxfce4`.
-
-## Step 5 - fix boot options (optional)
-- If you want to keep Windows, you'll need to dual-boot. Let's ensure it will work.
-Upon your first boot an entry should have been added to your grub boot menu if another operating system was detected.
-
-## Step 6 - reboot
-$ shutdown-system now -r
-You can let it boot normally, and see to which OS it goes.
-If you want to boot into other OS, press F8 on the startup process and select the disk to boot from.
-Note: If you installed xfce and it doesn't look right, reboot again.
-All your disks should be visible and accessible.
-
-## Step 7 - Hardware tests
-- Let's see if everything is right. visit https://devicetests.com/
-- Check your monitor refresh rate: `$ lxrandr`
-It should be correct. If it isn't, see "Other info" below.
-
-## Step 8 - run Quake
-$ quake
-It should run smooth as butter!
-You can change the selected "Quake install" to use: `$ quakepreset`
-
-## Step 9 - use your own Quake! (optional)
-This is the best thing - you can use Quake-bootable with your Quake folder: your config, your graphics, everything.
-- create a folder in quakeuser homedirectory/quake, (where the existing qw.* folders are). something like
-`$ mkdir /home/quakeuser/quake/qw.mushi`
-- copy your Quake's qw/ folder into this qw.mushi folder
-- copy your config file to the /home/quakeuser/quake/ezquake/configs folder
-- copy id1.pak to /home/quakeuser/quake/id1
-change the selected qw folder to use to your own (qw.mushi):
-`$ quakepreset`
-And that's it. You can run the game and have it exactly your way:
-`$ quake`
-
-# Other info:
-- the `quake` command automatically runs the game under GameMode (via
-  `gamemoderun`) when available, on top of the always-on performance CPU
-  governor set at boot
-- configuration of your gpu can be found in `/etc/rc.local`
-- see what runs in the startup `$ vim ~/.xinitrc` 
-- if your Quake isn't as smooth as it should, go to the ezQuake menu, and change the resolution there. Play around with settings, and apply them. Once its ok, cfg_save
-- if your Quake still isn't smooth, your monitor detailed resolution might need to be updated. You'll use xrandr command for this. Ask for help.
-
-
-## Building your own image:
 ```
-create:
- ./create_image.sh
-
-create in docker:
- docker run --rm --privileged -v $(pwd):/build debian bash -c "apt update;apt -qqy install git e2fsprogs dosfstools lvm2 uuid-runtime kpartx fdisk debootstrap zip && cd /build && git config --global --add safe.directory /build && BUILDTYPE=full-oldnvidia ./create_image.sh || (echo 'something broke, reattach to container and investigate, docker rm -f containerid when complete';sleep inf)"
-
-test:
- quake_bootable=$(ls -t quake_bootable-*.img| head -1)
- truncate -s 8G $quake_bootable `#simulate writing to 8GB media, warning: this will resize the image, zip file will remain unmodified`
- qemu-system-x86_64 -cpu Nehalem-v2 -m 4096 -smp 4 -drive format=raw,file=$quake_bootable -audio driver=pa,model=hda,id=foo -device virtio-vga-gl -display gtk,gl=on -device virtio-tablet-pci -device virtio-keyboard-pci -machine q35,vmport=off$([ -e /dev/kvm ] && echo ",accel=kvm") -device virtio-rng-pci
-
-package (not after truncate):
- quake_bootable=$(ls -t quake_bootable-*.img| head -1)
- pigz --zip -9 $quake_bootable
+quake_bootable-br-full-amd64.zip
+quake_bootable-br-full-amd64.z01
+quake_bootable-br-full-amd64.z02
+...
 ```
+
+O GitHub não aceita arquivos maiores que 2 GB, por isso o zip vem dividido. Coloque todas as partes na **mesma pasta**.
+
+### 2. Extraia o arquivo .img
+
+Instale o [7-Zip](https://www.7-zip.org/) (gratuito), clique com o botão direito no arquivo **`.zip`** e escolha
+**7-Zip → Extrair aqui**. Ele junta as partes sozinho e gera o arquivo `quake_bootable-full-amd64.img` (cerca de 7 GB).
+
+> O Windows Explorer não sabe abrir zip dividido. Use o 7-Zip.
+
+### 3. Grave no pendrive
+
+1. Baixe o [**Rufus**](https://rufus.ie/pt_BR/) (pode usar a versão portátil).
+2. Conecte o pendrive.
+3. No Rufus:
+   - **Dispositivo**: escolha o seu pendrive (confira o tamanho para não apagar o disco errado!)
+   - **Seleção de boot**: clique em **SELECIONAR** e escolha o arquivo `.img`
+4. Clique em **INICIAR**. Se perguntar o modo de gravação, escolha **Gravar em modo Imagem DD**.
+5. Confirme que os dados do pendrive serão apagados e espere terminar.
+
+Alternativa: o [balenaEtcher](https://etcher.balena.io/) também funciona (Flash from file → escolher o pendrive → Flash).
+
+### 4. Desligue o Secure Boot na BIOS
+
+O Linux deste projeto não é assinado para o Secure Boot, então ele precisa estar desligado.
+
+1. Reinicie o PC e entre na BIOS (geralmente **Del** ou **F2** ao ligar).
+2. Procure **Secure Boot** (costuma ficar em *Boot* ou *Security*) e coloque em **Disabled**.
+   - Na ASUS: *Boot → Secure Boot → OS Type → **Other OS***
+3. Salve e saia (**F10**).
+
+Isso não afeta o Windows; ele continua funcionando normalmente.
+
+### 5. Dê boot pelo pendrive
+
+Com o pendrive conectado, ligue o PC e aperte a tecla do **menu de boot** repetidamente:
+
+| Placa-mãe / marca | Tecla |
+|---|---|
+| ASUS | F8 |
+| Gigabyte, Dell, Lenovo, Acer | F12 |
+| MSI, ASRock | F11 |
+| HP | F9 |
+
+Escolha o pendrive na lista (se aparecer duas vezes, escolha a opção com **UEFI**).
+
+### 6. Pronto!
+
+Na primeira vez o boot demora um pouco mais (ele se ajusta ao tamanho do pendrive). Depois você cai direto na área de trabalho.
+
+- Clique no ícone do **unezQuake** na barra ou na área de trabalho para jogar
+- Usuário: `quakeuser` / senha: `quakeuser`
+- Para voltar ao Windows é só tirar o pendrive e reiniciar
+
+---
+
+## Instalar num SSD (opcional, para deixar fixo)
+
+Rodar num SSD deixa o boot e o carregamento de mapas mais rápidos. O jeito mais simples é **usar um SSD só para ele**
+(um SSD extra, NVMe ou SATA). O processo é o mesmo do pendrive, só que gravando no SSD.
+
+> **Atenção:** tudo no SSD escolhido será apagado. Nunca escolha o disco onde está o seu Windows.
+
+### Opção A: gravar pelo Windows (SSD num case/adaptador USB)
+
+1. Coloque o SSD num case ou adaptador USB e conecte no PC.
+2. Abra o Rufus. Se o SSD não aparecer, abra **Mostrar propriedades avançadas do drive** e marque **Listar discos USB**.
+3. Grave o `.img` do mesmo jeito do passo 3 acima.
+4. Instale o SSD dentro do PC.
+
+### Opção B: gravar a partir do próprio pendrive (SSD já instalado no PC)
+
+1. Dê boot pelo pendrive normalmente.
+2. Deixe o arquivo `.img` num lugar acessível (outro pendrive ou uma partição do Windows, que aparece no gerenciador de arquivos).
+3. Abra o terminal e descubra o nome do SSD:
+   ```
+   lsblk -d -o NAME,SIZE,MODEL
+   ```
+   Ele vai aparecer como `nvme1n1`, `sdb` etc. Confira pelo **tamanho e modelo**.
+4. Grave (troque `/caminho/do/arquivo.img` e `nvme1n1` pelos seus):
+   ```
+   sudo dd if=/caminho/do/arquivo.img of=/dev/nvme1n1 bs=8M status=progress conv=fsync
+   ```
+5. Desligue, tire o pendrive e ligue o PC. No primeiro boot o sistema cresce para ocupar o SSD inteiro.
+
+### Escolher entre Windows e Linux
+
+Com os dois instalados, aperte a tecla do menu de boot (tabela acima) ao ligar e escolha o disco.
+Ou entre na BIOS e defina qual disco inicia primeiro.
+
+---
+
+## Dicas
+
+### X11 ou Wayland?
+
+O sistema entra sozinho no **X11** (recomendado para jogar, menor input lag).
+Para usar o **Wayland** (melhor com vários monitores de taxas diferentes, ex.: 360 Hz + 240 Hz):
+saia da sessão e, na tela de login, escolha **Quake-bootable (Wayland)**.
+
+### Taxa de atualização do monitor
+
+Confira em **Configurações → Monitor** se o seu monitor está na taxa máxima (144/240/360 Hz).
+No jogo, use `vid_displayfrequency 360` (troque pela taxa do seu monitor) e `vid_restart`.
+
+### Comandos úteis no terminal
+
+| Comando | O que faz |
+|---|---|
+| `quake` | Abre o jogo |
+| `update-quake` | Atualiza o unezQuake para a última versão |
+| `quakepreset` | Troca a pasta de configurações (qw) |
+| `browser` | Abre o Chrome |
+| `sudo apt update && sudo apt upgrade` | Atualiza o sistema |
+| `passwd` | Troca a senha |
+
+### Usar a sua própria config
+
+Seus arquivos ficam em `/home/quakeuser/quake`:
+- configs: `quake/ezquake/configs/`
+- texturas, skins, mapas: `quake/qw/`
+
+Basta copiar seus arquivos do Windows (`C:\unezquake` ou `C:\nQuake`) para essas pastas.
+Dentro do jogo, `cfg_save` salva suas alterações.
+
+---
+
+## Problemas comuns
+
+- **Tela vermelha falando de Secure Boot**: desligue o Secure Boot (passo 4).
+- **O pendrive não aparece no menu de boot**: tente outra porta USB (de preferência na traseira do PC) e confira se gravou em modo DD.
+- **NVIDIA antiga (série 10xx ou anterior)**: esta imagem usa o driver novo; use a imagem `full-old_nvidia` do projeto original do ciscon.
+- **Sem internet no Wi-Fi**: clique no ícone de rede na barra e escolha a sua rede.
+
+---
+
+## Gerar a imagem você mesmo
+
+Precisa de um Linux (ou WSL2 com Debian):
+
+```
+pwsh sync-unezquake.ps1          # no Windows: copia C:\unezquake para quake-user/
+sudo ./create_image.sh           # no Linux: gera output/quake_bootable-full-amd64.img
+```
+
+Variáveis opcionais: `XANMOD=1` (kernel XanMod, CPU com AVX2), `BUILDTYPE=min`, `KEEPAPIKEY=1`.
+
+O readme original em inglês está em [readme-en.md](readme-en.md).
