@@ -789,6 +789,25 @@ $SUDO ./debootstick/debootstick --kernel-package $kernelpackage --config-kernel-
 
 if [ $? -eq 0 ];then
 
+	#convert gpt to mbr: the gpt backup header sits at the end of the image, not of the
+	#usb stick it gets written to, and some firmware (asus) then refuses to list the drive.
+	#mbr has no backup header. partition numbers/offsets stay the same, boot code is kept.
+	if [ "$(blkid -o value -s PTTYPE "$imagename")" == "gpt" ];then
+		bootcode=$(mktemp)
+		dd if="$imagename" of="$bootcode" bs=440 count=1 status=none
+		parts=$(sfdisk -d "$imagename" | grep ' : start=' | sed -e 's/.*start= *\([0-9]*\), size= *\([0-9]*\).*/\1 \2/')
+		set -- $parts
+		sfdisk --wipe always --no-reread --no-tell-kernel "$imagename" <<-EOF
+		label: dos
+		start=$1, size=$2, type=ef, bootable
+		start=$3, size=$4, type=da
+		start=$5, size=$6, type=8e
+		EOF
+		dd if="$bootcode" of="$imagename" bs=440 count=1 conv=notrunc status=none
+		rm -f "$bootcode"
+		[ "$(blkid -o value -s PTTYPE "$imagename")" == "dos" ] || exit 98
+	fi
+
 	#make sure the file is setup for bios boot
 	file "$imagename" | grep start-CHS && exit 99
 
