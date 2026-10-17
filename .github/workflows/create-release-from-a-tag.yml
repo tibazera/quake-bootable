@@ -1,10 +1,8 @@
 name: Publish
 
+#manual only: releases are built locally because they include quake-user/ (not in git)
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - 'main'
 
 
 jobs:
