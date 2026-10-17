@@ -18,6 +18,7 @@ builddate=$(date +%s)
 currentdir="$(cd "$(dirname "${BASH_SOURCE[0]}")/" >/dev/null 2>&1 && pwd)"
 workdir="$currentdir/workdir"
 quakedir="quake-base"
+userquakedir="$currentdir/quake-user"
 clean=1 #clean up previous environment
 
 imagebase="quake_bootable"
@@ -71,7 +72,7 @@ packages="cpio grub-pc shim-signed grub-efi-amd64-signed linux-image-amd64 dosfs
 #minimal build packages
 packages_nox11="libegl1 ifupdown dhcpcd-base"
 #full build packages
-packages_x11=" desktop-base xserver-xorg-legacy xserver-xorg-video-intel xserver-xorg-core xserver-xorg-video-amdgpu xserver-xorg-video-radeon xserver-xorg-input-all xinit connman-gtk feh menu python3-xdg xdg-utils chromium pasystray pavucontrol pipewire pipewire-pulse wireplumber x11-xserver-utils dbus dbus-user-session dbus-x11 dbus-bin imagemagick rtkit zip xkbset fonts-recommended zip gvfs-backends "
+packages_x11=" desktop-base xserver-xorg-legacy xserver-xorg-video-intel xserver-xorg-core xserver-xorg-video-amdgpu xserver-xorg-video-radeon xserver-xorg-input-all xinit connman-gtk feh menu python3-xdg xdg-utils pasystray pavucontrol pipewire pipewire-pulse wireplumber x11-xserver-utils dbus dbus-user-session dbus-x11 dbus-bin imagemagick rtkit zip xkbset fonts-recommended zip gvfs-backends "
 #window manager/de packages
 packages_x11+=" gnome-icon-theme xfce4-terminal xfce4 mousepad xkbset thunar-archive-plugin file-roller "
 if [ "$release" != "stable" ];then
@@ -196,6 +197,20 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 		$SUDO rm -rf "$workdir/quake"
 	fi
 	$SUDO cp -fR "$quakedir" "$workdir/quake"
+	#personal unezquake files (filled by sync-unezquake.ps1, not tracked by git)
+	if [ -d "$userquakedir" ];then
+		for d in "$userquakedir"/*/;do
+			d=$(basename "$d")
+			if [ "$d" == "qw" ];then
+				$SUDO rm -f "$workdir/quake/qw"
+				$SUDO cp -fR "$userquakedir/qw" "$workdir/quake/qw.tiba"
+				$SUDO ln -s qw.tiba "$workdir/quake/qw"
+			else
+				$SUDO mkdir -p "$workdir/quake/$d"
+				$SUDO cp -fR "$userquakedir/$d/." "$workdir/quake/$d/"
+			fi
+		done
+	fi
 	$SUDO cp -f "$background" "$workdir/background.png"
 	$SUDO mkdir -p "$workdir/usr/share/plymouth/themes"
 	$SUDO cp -rf "$plymouththeme" "$workdir/usr/share/plymouth/themes"
@@ -332,17 +347,19 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 	update-alternatives --install /usr/bin/vim vim /usr/bin/vi 0
 
 
-	#pull in appimage
-	#note: this is a rolling "latest" build so a pinned checksum is not viable here,
-	#we can only check that the download succeeded and produced a non-empty file
-	if ! wget -qO /tmp/ezquake-linux https://builds.quakeworld.nu/ezquake/snapshots/latest/linux/x86_64/ezQuake-x86_64.AppImage;then
-		echo "failed to download ezquake appimage, bailing out"
+	#pull in latest unezquake release appimage (dusty-qw/unezquake)
+	unezquakeurl=$(wget -qO- https://api.github.com/repos/dusty-qw/unezquake/releases/latest | grep -o "https://[^\"]*unezQuake-linux-x86_64.zip" | head -n1)
+	if [ -z "$unezquakeurl" ] || ! wget -qO /tmp/unezquake.zip "$unezquakeurl";then
+		echo "failed to download unezquake, bailing out"
 		exit 12
 	fi
-	[ ! -s /tmp/ezquake-linux ] && exit 12
-	file /tmp/ezquake-linux | grep -qi "ELF\|executable" || { echo "downloaded ezquake appimage does not look like a valid executable, bailing out"; exit 12; }
-	mv /tmp/ezquake-linux /home/quakeuser/quake/ezquake-linux
-	chmod +x /home/quakeuser/quake/ezquake-linux
+	unzip -p /tmp/unezquake.zip "*.AppImage" > /tmp/unezquake-linux
+	rm -f /tmp/unezquake.zip
+	[ ! -s /tmp/unezquake-linux ] && exit 12
+	file /tmp/unezquake-linux | grep -qi "ELF\|executable" || { echo "downloaded unezquake appimage does not look like a valid executable, bailing out"; exit 12; }
+	basename "$(dirname "$unezquakeurl")" > /ezquake_ver
+	mv /tmp/unezquake-linux /home/quakeuser/quake/unezquake-linux
+	chmod +x /home/quakeuser/quake/unezquake-linux
   chown quakeuser:quakeuser -Rf /home/quakeuser/quake
 
 	##build ezquake
@@ -407,7 +424,27 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 			#rm /tmp/aq.zip
 			#chown quakeuser:quakeuser -Rf /home/quakeuser/quake-afterquake
   
-  		#install nvidia drivers
+  			#google chrome (adds its own apt repo for updates)
+			if ! wget -qO /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb;then
+				echo "failed to download google chrome, bailing out"
+				exit 15
+			fi
+			apt-get -qy install /tmp/chrome.deb
+			rm -f /tmp/chrome.deb
+
+			#discord (official .deb)
+			if ! wget -qO /tmp/discord.deb "https://discord.com/api/download?platform=linux&format=deb";then
+				echo "failed to download discord, bailing out"
+				exit 16
+			fi
+			apt-get -qy install /tmp/discord.deb
+			rm -f /tmp/discord.deb
+			#skip the host update check, otherwise discord refuses to start when a newer .deb exists
+			mkdir -p /home/quakeuser/.config/discord
+			echo "{\"SKIP_HOST_UPDATE\": true}" > /home/quakeuser/.config/discord/settings.json
+			chown -R quakeuser:quakeuser /home/quakeuser/.config
+
+		#install nvidia drivers
 			if [ "$build_type" != "full-oldnvidia" ];then
 				#list all available packages and versions into file before adding nvidia repo
 				apt list > /versions_before_nvidia.txt 2>/dev/null
@@ -462,6 +499,14 @@ if [ $onlybuild -eq 0 ] || [ ! -d "$workdir/usr" ];then
 		echo -e "auto /e*=eth\n  iface eth inet dhcp" > /etc/network/interfaces.d/99-dhcp
 	fi
 	
+	#brazilian defaults: timezone and abnt2 keyboard (x11 picks it up from xorg.conf.d, labwc from XKB_DEFAULT_*)
+	ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+	echo "America/Sao_Paulo" > /etc/timezone
+	echo -e "XKBMODEL=\"abnt2\"
+XKBLAYOUT=\"br\"" > /etc/default/keyboard
+	echo -e "XKB_DEFAULT_LAYOUT=br
+XKB_DEFAULT_MODEL=abnt2" >> /etc/environment
+
 	#configure grub
 	if [ -f /etc/default/grub ];then
 	  sed -i "s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=1/g" /etc/default/grub
@@ -645,7 +690,7 @@ if [ ! -z "$nvidia_old_version" ];then
 	echo "- kernel: $kernel_version" >> versions.txt
 	echo "- nvidia (full build): $nvidia_version" >> versions.txt
 	echo "- nvidia old (full-old_nvidia build): $nvidia_old_version" >> versions.txt
-	echo "- ezquake: $ezquake_version" >> versions.txt
+	echo "- unezquake: $ezquake_version" >> versions.txt
 fi
 
 
