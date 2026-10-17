@@ -19,6 +19,7 @@ The main use case for quake-bootable is to save the image to a USB flash drive. 
   - discord
   - shutdown-system
   - razer commands (if a razer device exists)
+  - flatpak install/search apps from Flathub, or use the GNOME Software GUI (search "Software" in the app menu)
 - Quake related commands
   - quake - runs the game with the selected preset
   - quakepreset - changes the qw folder
@@ -50,16 +51,19 @@ You can change it with
 ### update packages
 `$ sudo apt update`
 
-## Step 4 - install a different window manager (optional)
-NOTE: switched to xfce by default - still relevant for switching to another wm though
-By default Quake-bootable includes a very basic window manager (Openbox). If you struggle with it, you can install a more familiar one, for example xfce. To install: `$ sudo apt install xfce4`
-And then, make it the default in the startup process. edit the file: `$ vim ~/.xinitrc`
-And change the very bottom where it says
-`exec openbox-session
-to
-exec xfce4-session`
+## Step 4 - choosing X11 or Wayland (optional)
+Quake-bootable auto-logs into the X11/Xfce desktop by default, same as
+before. If you want the Wayland session instead, log in manually (or reboot
+and pick a session at the LightDM greeter before the autologin kicks in) and
+choose:
+- **Quake-bootable (Xfce)** - the default X11/Xfce desktop, unchanged from before.
+- **Quake-bootable (Wayland)** - a Wayland session using labwc, a lightweight
+  Openbox-like compositor. ezQuake and other X11-only apps still work under
+  this session via XWayland.
 
-On the next boot, it will boot into xfce. Don't do it now! Continue to next step.
+If you'd rather install a different window manager for the X11 session instead,
+you still can: `$ sudo apt install xfce4` (or any other WM), then edit
+`~/.xinitrc.real` to `exec` it instead of `startxfce4`.
 
 ## Step 5 - fix boot options (optional)
 - If you want to keep Windows, you'll need to dual-boot. Let's ensure it will work.
@@ -95,6 +99,9 @@ And that's it. You can run the game and have it exactly your way:
 `$ quake`
 
 # Other info:
+- the `quake` command automatically runs the game under GameMode (via
+  `gamemoderun`) when available, on top of the always-on performance CPU
+  governor set at boot
 - configuration of your gpu can be found in `/etc/rc.local`
 - see what runs in the startup `$ vim ~/.xinitrc` 
 - if your Quake isn't as smooth as it should, go to the ezQuake menu, and change the resolution there. Play around with settings, and apply them. Once its ok, cfg_save

@@ -5,3 +5,4 @@ lvm/backup
 lvm/archive
 workdir
 output
+.claude/
