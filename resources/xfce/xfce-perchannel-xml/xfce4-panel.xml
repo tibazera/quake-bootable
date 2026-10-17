@@ -9,6 +9,7 @@
       <property name="position" type="string" value="p=10;x=0;y=0"/>
       <property name="length" type="uint" value="97"/>
       <property name="position-locked" type="bool" value="true"/>
+      <property name="output-name" type="string" value="Primary"/>
       <property name="size" type="uint" value="44"/>
       <property name="icon-size" type="uint" value="28"/>
       <property name="background-style" type="uint" value="1"/>
