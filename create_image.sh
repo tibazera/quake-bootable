@@ -81,7 +81,7 @@ if [ "$release" != "stable" ];then
 fi
 
 #visual theme packages
-packages_x11+=" arc-theme papirus-icon-theme "
+packages_x11+=" orchis-gtk-theme papirus-icon-theme xfce4-whiskermenu-plugin fonts-inter fonts-jetbrains-mono breeze-cursor-theme "
 
 #flatpak support (cli only, gnome-software adds ~150MB)
 packages_x11+=" flatpak "
@@ -589,6 +589,13 @@ XKB_DEFAULT_MODEL=abnt2" >> /etc/environment
 	mkdir -p /etc/lightdm/lightdm.conf.d
 	echo -e "[Seat:*]\nautologin-user=quakeuser\nautologin-session=xfce\nautologin-user-timeout=0\ngreeter-hide-users=false\nuser-session=xfce" > /etc/lightdm/lightdm.conf.d/50-quake-bootable.conf
 	usermod -a -G autologin quakeuser 2>/dev/null || true
+	#greeter matches the desktop theme
+	echo -e "[greeter]
+theme-name=Orchis-Dark
+icon-theme-name=Papirus-Dark
+cursor-theme-name=breeze_cursors
+font-name=Inter 11
+background=/background.png" > /etc/lightdm/lightdm-gtk-greeter.conf
 	systemctl set-default graphical.target
 	systemctl enable lightdm
 
@@ -644,7 +651,7 @@ XKB_DEFAULT_MODEL=abnt2" >> /etc/environment
 
 	#labwc (wayland session) config
 	$SUDO mkdir -p "$workdir/home/quakeuser/.config/labwc"
-	$SUDO cp -f "$labwcdir/autostart" "$labwcdir/rc.xml" "$workdir/home/quakeuser/.config/labwc/"
+	$SUDO cp -f "$labwcdir/autostart" "$labwcdir/rc.xml" "$labwcdir/environment" "$workdir/home/quakeuser/.config/labwc/"
 
 	#portal backends: wlr for screencast/screenshot on labwc, gtk for the rest
 	$SUDO mkdir -p "$workdir/home/quakeuser/.config/xdg-desktop-portal"
