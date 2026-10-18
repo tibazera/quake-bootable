@@ -535,6 +535,8 @@ Pin-Priority: 100" > /etc/apt/preferences.d/unstable
 	#brazilian defaults: timezone and abnt2 keyboard (x11 picks it up from xorg.conf.d, labwc from XKB_DEFAULT_*)
 	ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
 	echo "America/Sao_Paulo" > /etc/timezone
+	#rtc in local time like windows, set before first boot so timesyncd never writes it as utc
+	printf "0.0 0 0.0\n0\nLOCAL\n" > /etc/adjtime
 	sed -i "s/^# *pt_BR.UTF-8/pt_BR.UTF-8/" /etc/locale.gen
 	locale-gen
 	echo "LANG=pt_BR.UTF-8" > /etc/default/locale
